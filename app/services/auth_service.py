@@ -2,6 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import  select
 from models.models import User
 from utils import hashing
+from http.client import HTTPException
+from fastapi import  status
+from datetime import datetime, timezone
 
 
 async def login_user(username: str, password: str, session: AsyncSession):
@@ -14,3 +17,19 @@ async def login_user(username: str, password: str, session: AsyncSession):
         return False
     return user
 
+async def register_user(username: str, email: str, password: str, session: AsyncSession):
+    ifuser = await session.execute(
+        select(User).where(User.email == email)
+    )
+    ifuser = ifuser.scalar_one_or_none()
+    if ifuser:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not in this chat")
+
+    user = User(
+        username=username,
+        email=email,
+        hashed_password=hashing.hash_password(password),
+        created_at=datetime.now(timezone.utc)
+    )
+    session.add(user)
+    await session.commit()

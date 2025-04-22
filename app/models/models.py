@@ -49,7 +49,7 @@ class Message(Base):
     chat_id = Column(ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     content = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     chat = relationship("Chat", back_populates="messages")
     user = relationship("User", back_populates="messages")
@@ -64,8 +64,8 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     messages = relationship("Message", back_populates="user")
     chat_memberships = relationship("ChatMember", back_populates="user")

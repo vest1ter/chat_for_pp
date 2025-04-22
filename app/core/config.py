@@ -11,7 +11,7 @@ class WebSocketConnectionManager:
         self.active_connections: List[WebSocket] = []
 
     async def connect(self, websocket: WebSocket, room_id: str, user_id: str):
-        await websocket.accept()
+        #await websocket.accept()
         self.active_connections.append(
             {"websocket": websocket, "room_id": room_id, "user_id": user_id}
         )
@@ -61,7 +61,7 @@ class JWTConfig(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        # env_file=".env",
+        #env_file=".env",
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APP_CONFIG__",

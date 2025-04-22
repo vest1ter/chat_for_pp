@@ -1,4 +1,4 @@
-from http.client import HTTPException
+from fastapi import HTTPException
 from urllib import request
 
 from fastapi import APIRouter, Depends, Response, Request
@@ -9,8 +9,8 @@ from models.db_helper import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from models.models import User
-from schemas.auth_schemas.auth_requests import LoginUserRequest
-from schemas.auth_schemas.auth_responses import LoginUserResponse, RefreshUserResponse, MeUserResponse
+from schemas.auth_schemas.auth_requests import LoginUserRequest, RegisterUserRequest
+from schemas.auth_schemas.auth_responses import LoginUserResponse, RefreshUserResponse, MeUserResponse, RegisterUserResponse
 from services import auth_service
 from utils.JWT import create_access_token, create_refresh_token, verify_token
 from utils.cookies import set_auth_cookie, set_cookie
@@ -44,6 +44,24 @@ async def auth(
         token_type="bearer",
         refresh_token=refresh_token
     )
+
+@router.post("/register", response_model=RegisterUserResponse)
+async def register(
+        response: Response,
+        request: RegisterUserRequest,
+        session: AsyncSession = Depends(get_session),
+):
+    if request.password == request.repeat_password:
+        await auth_service.register_user(request.username,request.email, request.password, session=session)
+    else:
+        raise HTTPException(status_code=405, detail="differend passwords")
+
+    return RegisterUserResponse(
+        username=request.username,
+    )
+
+
+
 
 @router.post("/refresh", response_model=RefreshUserResponse)
 async def auth_refresh(

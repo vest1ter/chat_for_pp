@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Request
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Request, HTTPException
 from core.config import WebSocketConnectionManager
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.db_helper import get_session
 from utils.JWT import verify_token
-from http.client import HTTPException
+from services.websocket_service import send_private_message_websocket_service
 
 
 
@@ -32,6 +32,20 @@ async def send_private_message_websocket(
         return
 
     await manager.connect(websocket, chat_id, user.id)
+
+    #общение
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await send_private_message_websocket_service(user.id, chat_id, data, session)
+            await manager.broadcast_message(
+                f"{user.username}: {data}", chat_id
+            )
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, chat_id)
+        await manager.broadcast_message(
+            f"User {user.username} left the private chat", chat_id
+        )
 
 
 

@@ -12,3 +12,6 @@ class RefreshUserResponse(BaseModel):
 class MeUserResponse(BaseModel):
     user_id: str
     username: str
+
+class RegisterUserResponse(BaseModel):
+    username: str

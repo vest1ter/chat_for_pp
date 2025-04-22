@@ -21,19 +21,33 @@ router = APIRouter(
 
 
 
-@router.get("/messages")
-async def get_messages(
+@router.get("/get_messages")
+async def get_messages_api(
         request: Request,
         chat_id: str,
         session: AsyncSession = Depends(get_session)):
     access_token = request.cookies.get("access_token")
     if not access_token: raise HTTPException(401)
     user = verify_token(access_token)
-    last_messages = await webchat_service.get_messages(chat_id, session)
+
+    last_messages = await webchat_service.get_messages(user, chat_id, session)
 
     return last_messages
 
 
+@router.post("/private_message")
+async def send_private_message_api(
+        request: Request,
+        response: Response,
+        chat_id: str,
+        text_data: str,
+        session: AsyncSession = Depends(get_session)
+):
+    access_token = request.cookies.get("access_token")
+    user = verify_token(access_token)
 
+    await webchat_service.send_private_message(user, chat_id, text_data, session)
+
+    return {"success": True}
 
 
