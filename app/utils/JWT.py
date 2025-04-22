@@ -1,6 +1,6 @@
 import jwt
 from datetime import datetime, timedelta, timezone
-from core.config import settings
+from app.core.config import settings
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 

@@ -51,6 +51,12 @@ class DatabaseConfig(BaseModel):
     pool_size: int = 50
     max_overflow: int = 10
 
+class S3Config(BaseModel):
+    endpoint_url: str
+    root_user: str
+    root_password: str
+    bucket_name: str
+
 class JWTConfig(BaseModel):
     secret_key: str
     algorithm: str
@@ -61,7 +67,7 @@ class JWTConfig(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        #env_file=".env",
+        env_file=".env",
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APP_CONFIG__",
@@ -70,6 +76,7 @@ class Settings(BaseSettings):
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiPrefix()
     db: DatabaseConfig
+    S3: S3Config
     jwt: JWTConfig
 
 

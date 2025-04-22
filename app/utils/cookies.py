@@ -1,5 +1,5 @@
 from fastapi import Response
-from core.config import settings
+from app.core.config import settings
 
 
 def set_cookie(response: Response, key: str, value: str, max_age: int, samesite: str = "Lax", secure: bool = False):

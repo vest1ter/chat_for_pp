@@ -2,14 +2,14 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 
-from core.config import settings
-from api.api_v1.auth import router as auth_router
-from api.api_v1.webchat import router as webchat_router
-from websocket.websocket import router as websocket_router
+#from core.config import settings
+from app.api.api_v1.auth import router as auth_router
+from app.api.api_v1.webchat import router as webchat_router
+from app.websocket.websocket import router as websocket_router
 #from api.api_v1.webchat import router as ws_router
 from fastapi.middleware.cors import CORSMiddleware
 
-from models.db_helper import db_helper
+from app.models.db_helper import db_helper
 
 
 @asynccontextmanager

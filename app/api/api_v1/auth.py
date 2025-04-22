@@ -3,17 +3,17 @@ from urllib import request
 
 from fastapi import APIRouter, Depends, Response, Request
 
-from core.config import settings
+from app.core.config import settings
 
-from models.db_helper import get_session
+from app.models.db_helper import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models.models import User
-from schemas.auth_schemas.auth_requests import LoginUserRequest, RegisterUserRequest
-from schemas.auth_schemas.auth_responses import LoginUserResponse, RefreshUserResponse, MeUserResponse, RegisterUserResponse
-from services import auth_service
-from utils.JWT import create_access_token, create_refresh_token, verify_token
-from utils.cookies import set_auth_cookie, set_cookie
+from app.models.models import User
+from app.schemas.auth_schemas.auth_requests import LoginUserRequest, RegisterUserRequest
+from app.schemas.auth_schemas.auth_responses import LoginUserResponse, RefreshUserResponse, MeUserResponse, RegisterUserResponse
+from app.services import auth_service
+from app.utils.JWT import create_access_token, create_refresh_token, verify_token
+from app.utils.cookies import set_auth_cookie, set_cookie
 import jwt
 
 

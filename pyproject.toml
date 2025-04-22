@@ -1,5 +1,4 @@
 [tool.poetry]
-package-mode = false
 name = "chat-for-pp"
 version = "0.1.0"
 description = ""
@@ -7,7 +6,7 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.13"
+python = "^3.13"  # Изменено с >= на ^ для совместимости
 fastapi = "^0.115.11"
 uvicorn = "^0.34.0"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.39"}
@@ -21,12 +20,12 @@ websockets = "^15.0.1"
 aiofiles = "^24.1.0"
 pydantic-settings = "^2.8.1"
 bcrypt = "3.2.2"
-jwt = "^1.3.1"
-pyjwt = "^2.10.1"
+pyjwt = "^2.10.1"  # Исправлено с jwt на pyjwt
+aiobotocore = "^2.21.1"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"

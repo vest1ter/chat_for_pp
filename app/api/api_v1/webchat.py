@@ -3,15 +3,15 @@ from http.client import HTTPException
 
 from fastapi import APIRouter, Depends, Response, Request
 
-from core.config import settings
+from app.core.config import settings
 
-from models.db_helper import get_session
+from app.models.db_helper import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models.models import User
-from services import webchat_service
-from utils.JWT import verify_token
-from utils.cookies import set_auth_cookie, set_cookie
+from app.models.models import User
+from app.services import webchat_service
+from app.utils.JWT import verify_token
+from app.utils.cookies import set_auth_cookie, set_cookie
 import jwt
 
 router = APIRouter(

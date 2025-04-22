@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Request, HTTPException
-from core.config import WebSocketConnectionManager
+from app.core.config import WebSocketConnectionManager
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.db_helper import get_session
-from utils.JWT import verify_token
-from services.websocket_service import send_private_message_websocket_service
+from app.models.db_helper import get_session
+from app.utils.JWT import verify_token
+from app.services.websocket_service import send_private_message_websocket_service
 
 
 

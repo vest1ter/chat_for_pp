@@ -1,20 +1,58 @@
+version: '3.8'
+
 services:
-  pg:
-    image: postgres
-    environment:
-      POSTGRES_DB: chat
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      PGDATA: /var/lib/postgresql/data
+  app:
+    build: .
     ports:
-      - "5432:5432"
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - APP_CONFIG__DB__URL=${APP_CONFIG__DB__URL}
+      - APP_CONFIG__S3__endpoint_url=${APP_CONFIG__S3__endpoint_url}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # Проброс порта на хост
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
-      timeout: 3s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"  # S3 API
+      - "9001:9001"  # Console UI
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
       retries: 3
 
+
 volumes:
-  pgdata:
+  postgres_data:
+  minio_data:

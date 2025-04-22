@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import  select, desc, insert
-from models.models import Message, Chat, ChatMember
+from app.models.models import Message, Chat, ChatMember
 from fastapi import HTTPException
 from fastapi import status
 from datetime import datetime, timezone

@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import  select
-from models.models import User
-from utils import hashing
-from http.client import HTTPException
+from app.models.models import User
+from app.utils import hashing
+from fastapi import HTTPException
 from fastapi import  status
 from datetime import datetime, timezone
 
