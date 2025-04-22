@@ -13,7 +13,7 @@ class ChatMember(Base):
 
     chat_id = Column(ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    joined_at = Column(DateTime, default=datetime.utcnow)
+    joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     chat = relationship("Chat", back_populates="members")
     user = relationship("User", back_populates="chat_memberships")
@@ -25,7 +25,7 @@ class Chat(Base):
     __tablename__ = "chats"
 
     name = Column(String(100), nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     messages = relationship("Message", back_populates="chat")
     members = relationship("ChatMember", back_populates="chat")
