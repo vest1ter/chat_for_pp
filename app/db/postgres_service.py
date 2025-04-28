@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import  select, desc, insert
+from sqlalchemy import  select, desc, insert, update
 from app.models.models import Message, Chat, ChatMember, User
 from datetime import datetime, timezone
 import uuid
@@ -81,3 +81,22 @@ async def get_user_id_by_email_from_db(email, session: AsyncSession):
     user = result.scalars().first()
 
     return user
+
+async def send_private_message_websocket_to_db(user_id: str, chat_id: str, data: str, session: AsyncSession):
+    message = Message(
+        user_id=user_id,
+        chat_id=chat_id,
+        content=data,
+        created_at=datetime.now(timezone.utc),
+    )
+    session.add(message)
+    await session.commit()
+
+async def update_user_online_status_in_db(user_id: str, is_online: bool, session: AsyncSession):
+    stmt = (
+        update(User)
+        .filter(User.id == user_id)
+        .values(is_active=is_online)
+    )
+    await session.execute(stmt)
+    await session.commit()

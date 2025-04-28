@@ -3,7 +3,7 @@ from app.core.config import WebSocketConnectionManager
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.db_helper import get_session
 from app.utils.JWT import verify_token
-from app.services.websocket_service import send_private_message_websocket_service
+from app.services.websocket_service import send_private_message_websocket_service, update_user_online_status
 
 
 
@@ -33,6 +33,8 @@ async def send_private_message_websocket(
 
     await manager.connect(websocket, chat_id, user.id)
 
+    await update_user_online_status(user.id, is_online=True, session=session)
+
     #общение
     try:
         while True:
@@ -43,6 +45,7 @@ async def send_private_message_websocket(
             )
     except WebSocketDisconnect:
         manager.disconnect(websocket, chat_id)
+        await update_user_online_status(user.id, is_online=False, session=session)
         await manager.broadcast_message(
             f"User {user.username} left the private chat", chat_id
         )
