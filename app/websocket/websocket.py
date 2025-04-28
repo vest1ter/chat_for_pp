@@ -55,5 +55,4 @@ async def send_private_message_websocket(
 
 
 
-    print(user)
 

@@ -51,6 +51,16 @@ async def add_message_to_db(user, chat_id, text_data, session:AsyncSession):
     session.add(message)
     await session.commit()
 
+
+async def exist_chat_in_db(chat_name, session: AsyncSession):
+    query = select(Chat).filter(Chat.name == chat_name)
+    chat = await session.execute(query)
+    chat = chat.scalars().first()
+    if chat is None:
+        return None
+    return chat.id
+
+
 async def create_chat_in_db(chat_name, session: AsyncSession):
     chat_id = str(uuid.uuid4())
     chat = Chat(
@@ -100,3 +110,11 @@ async def update_user_online_status_in_db(user_id: str, is_online: bool, session
     )
     await session.execute(stmt)
     await session.commit()
+
+async def get_online_status(user_email: str, session: AsyncSession):
+    query = (select(User).filter(User.email == user_email))
+
+    result = await session.execute(query)
+    user = result.scalars().first()
+
+    return user.is_active

@@ -29,6 +29,11 @@ async def send_private_message(user, chat_id, text_data, session: AsyncSession):
     await postgres_service.add_message_to_db(user, chat_id, text_data, session)
 
 
+async def exist_chat(chat_name: str, session: AsyncSession):
+    chat_id = await postgres_service.exist_chat_in_db(chat_name, session)
+    return chat_id
+
+
 async def create_private_chat(chat_name: str, current_user, to_user, session: AsyncSession):
 
     chat_id = await postgres_service.create_chat_in_db(chat_name, session)
@@ -47,3 +52,8 @@ async def get_user_id_by_email(email: str, session: AsyncSession):
     if not user: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
 
     return user
+
+async def get_online_status(user_email: str, session: AsyncSession):
+    status = await postgres_service.get_online_status(user_email, session)
+
+    return status

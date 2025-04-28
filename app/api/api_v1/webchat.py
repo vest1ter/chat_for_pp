@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Response, Request, Query
 from app.core.config import settings
 from typing import Optional
 from app.models.db_helper import get_session
-from app.schemas.webchat_schemas.webchat_responses import CreatePrivateChatResponse
+from app.schemas.webchat_schemas.webchat_responses import CreatePrivateChatResponse, GetOnlineStatusResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.models import User
@@ -14,6 +14,8 @@ from app.services import webchat_service
 from app.utils.JWT import verify_token
 from app.utils.cookies import set_auth_cookie, set_cookie
 import jwt
+
+from db import postgres_service
 
 router = APIRouter(
     prefix="/api/v1/chat",
@@ -56,7 +58,6 @@ async def send_private_message_api(
 async def create_chat(
         to_user_email: str,
         request: Request,
-        chat_name: Optional[str] = None,
         session: AsyncSession = Depends(get_session)
 ):
     access_token = request.cookies.get("access_token")
@@ -64,9 +65,16 @@ async def create_chat(
     current_user = verify_token(access_token)
 
     to_user = await webchat_service.get_user_id_by_email(to_user_email, session)
+    print(to_user.id)
 
-    if chat_name is None: chat_name = str(current_user.username)+ " "+ str(to_user.username)
-    chat_id = await webchat_service.create_private_chat(chat_name, current_user, to_user, session)
+    chat_name = f"{current_user.username}_{to_user.username}"
+
+    print(chat_name)
+
+    chat_id = await webchat_service.exist_chat(chat_name, session)
+    print(chat_id)
+    if chat_id is None: chat_id = await webchat_service.create_private_chat(chat_name, current_user, to_user, session)
+    print(chat_id)
 
     return CreatePrivateChatResponse(
         chat_id=str(chat_id),
@@ -75,4 +83,18 @@ async def create_chat(
         to_user=to_user.username,
     )
 
+@router.get("/get_online_status", response_model=GetOnlineStatusResponse)
+async def get_online_status(
+        user_email: str,
+        request: Request,
+        session: AsyncSession = Depends(get_session)
+):
+    access_token = request.cookies.get("access_token")
+    if not access_token: raise HTTPException(401)
 
+    status = await webchat_service.get_online_status(user_email, session)
+
+    return GetOnlineStatusResponse(
+        user_email=user_email,
+        is_online=status,
+    )
