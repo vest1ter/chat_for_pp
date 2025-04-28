@@ -6,82 +6,44 @@ from fastapi import HTTPException
 from fastapi import status
 from datetime import datetime, timezone
 import uuid
+from app.db import postgres_service
 #from logging import Logger
 
 async def get_messages(user: str, chat_id:str, session: AsyncSession, limit: int = 50):
-    membership_result = await session.execute(
-        select(ChatMember).where(ChatMember.chat_id == chat_id, ChatMember.user_id == user.id)
-    )
-    membership = membership_result.scalar_one_or_none()
+    membership = await postgres_service.chek_membership_in_db(chat_id, user, session)
     if not membership:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not in this chat")
 
-    query = (
-        select(Message)
-        .filter(Message.chat_id == chat_id)
-        .order_by(desc(Message.created_at))
-        .limit(limit)
-    )
+    messages = await postgres_service.get_messages_from_db(chat_id, limit, session)
 
-    result = await session.execute(query)
-    result = result.scalars().all()
+    if not messages: raise HTTPException(401)
 
-    if not result: raise HTTPException(401)
-
-    return result
+    return messages
 
 
 async def send_private_message(user, chat_id, text_data, session: AsyncSession):
-    membership_result = await session.execute(
-        select(ChatMember).where(ChatMember.chat_id == chat_id, ChatMember.user_id == user.id)
-    )
-    membership = membership_result.scalar_one_or_none()
+    membership = await postgres_service.chek_membership_in_db(chat_id, user, session)
     if not membership:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not in this chat")
 
+    await postgres_service.add_message_to_db(user, chat_id, text_data, session)
 
-    message = Message(
-        user_id=user.id,
-        chat_id=chat_id,
-        content=text_data,
-        created_at=datetime.now(timezone.utc)
-    )
-    session.add(message)
-    await session.commit()
 
 async def create_private_chat(chat_name: str, current_user, to_user, session: AsyncSession):
 
-    chat_id = str(uuid.uuid4())
-    chat = Chat(
-        id=chat_id,
-        name=chat_name,
-        created_at=datetime.now(timezone.utc),
-    )
-    session.add(chat)
-    await session.commit()
-
-    member_one = ChatMember(
-        chat_id=chat_id,
-        user_id=current_user.id,
-        joined_at=datetime.now(timezone.utc),
-    )
-    member_two = ChatMember(
-        chat_id=chat_id,
-        user_id=to_user.id,
-        joined_at=datetime.now(timezone.utc),
-    )
-    session.add_all([member_one, member_two])
-    await session.commit()
+    chat_id = await postgres_service.create_chat_in_db(chat_name, session)
+    
+    await postgres_service.add_member_to_chat_in_db(chat_id, current_user, session)
+    await postgres_service.add_member_to_chat_in_db(chat_id, to_user, session)
 
     return chat_id
 
 
 
 async def get_user_id_by_email(email: str, session: AsyncSession):
-    query = (select(User).filter(User.email == email))
-
-    result = await session.execute(query)
-    user = result.scalars().first()
-
+    
+    user = await postgres_service.get_user_id_by_email_from_db(email, session)
+    
     if not user: raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User not found")
+
     return user
