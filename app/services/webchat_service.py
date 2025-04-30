@@ -9,6 +9,14 @@ import uuid
 from app.db import postgres_service
 #from logging import Logger
 
+
+async def get_all_users_chats(user_id: int, session: AsyncSession):
+    chats = await postgres_service.get_all_users_chats_from_db(user_id, session)
+
+    return chats
+
+
+
 async def get_messages(user: str, chat_id:str, session: AsyncSession, limit: int = 50):
     membership = await postgres_service.chek_membership_in_db(chat_id, user, session)
     if not membership:

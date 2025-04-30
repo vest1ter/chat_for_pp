@@ -3,6 +3,24 @@ from sqlalchemy import  select, desc, insert, update
 from app.models.models import Message, Chat, ChatMember, User
 from datetime import datetime, timezone
 import uuid
+import logging
+logger = logging.getLogger(__name__)
+
+
+async def get_all_users_chats_from_db(user_id, session: AsyncSession):
+    query = (
+        select(Chat)
+        .join(ChatMember, Chat.id == ChatMember.chat_id)
+        .filter(ChatMember.user_id == user_id)
+    )
+    result = await session.execute(query)
+
+    result = result.scalars().all()
+
+    chats = [{"chat_id": chat.id,"chat_name": chat.name} for chat in result]
+
+    logger.debug(chats)
+    return chats
 
 
 async def get_user_by_usename_from_db(username, session: AsyncSession):

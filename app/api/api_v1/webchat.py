@@ -1,11 +1,12 @@
 from http.client import HTTPException
 
 
-from fastapi import APIRouter, Depends, Response, Request, Query
+from fastapi import APIRouter, Depends, Response, Request, Query, UploadFile
 
 from app.core.config import settings
 from typing import Optional
 from app.models.db_helper import get_session
+from app.db.S3service import get_s3_client
 from app.schemas.webchat_schemas.webchat_responses import CreatePrivateChatResponse, GetOnlineStatusResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -13,6 +14,7 @@ from app.models.models import User
 from app.services import webchat_service
 from app.utils.JWT import verify_token
 from app.utils.cookies import set_auth_cookie, set_cookie
+from uuid import uuid4
 import jwt
 
 from db import postgres_service
@@ -22,6 +24,19 @@ router = APIRouter(
     tags=["Chat"],
 )
 
+
+
+@router.get("/get_all_chats") #, response_model=List[]
+async def get_all_chats(
+        request: Request,
+        session: AsyncSession = Depends(get_session)
+):
+    access_token = request.cookies.get("access_token")
+    if not access_token: raise HTTPException(401)
+    user = verify_token(access_token)
+    users_chats = await webchat_service.get_all_users_chats(user.id, session)
+
+    return users_chats
 
 
 @router.get("/get_messages")
@@ -98,3 +113,24 @@ async def get_online_status(
         user_email=user_email,
         is_online=status,
     )
+
+
+
+
+@router.post("/upload")
+async def upload_file(
+        file: UploadFile,
+        chat_id: str,
+        S3Client = Depends(get_s3_client)
+):
+    file_ext = file.filename.split('.')[-1]
+    object_name = f"uploads/{uuid4()}.{file_ext}"
+
+    await S3Client.upload_fileobj(file, object_name)
+    file_url = await S3Client.get_presigned_url(object_name)
+
+    return {
+        "url": file_url,
+        "filename": file.filename,
+        "content_type": file.content_type
+    }
